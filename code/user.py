@@ -22,10 +22,11 @@ class User():
 
     def set_user_status(self,status):
         self.status = status
-        
 
+        
+    #debut save_user()
     def save_user(self):
-        user_list = self.load_user_from_csv(User.user_file_path)
+        user_list = User.load_user_from_csv(User.user_file_path)
         inFile = False
         for user in user_list:
             if user.get_user_nickname() == self.get_user_nickname():
@@ -36,12 +37,13 @@ class User():
                 filewriter = csv.writer(csvfile, lineterminator = '\n', delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
                 filewriter.writerow([self.get_user_nickname(), self.get_user_status()])
                 csvfile.close()
+    #fin save_user()
 
     #debut load_user_from_csv()
-    def load_user_from_csv(self,user_file_path):
+    def load_user_from_csv():
             user_list = []
-            cpt_column = self.search_in_file(user_file_path)
-            with open(user_file_path, 'r') as csvfile:
+            cpt_column = User.search_in_file(User.user_file_path)
+            with open(User.user_file_path, 'r') as csvfile:
                 filereader = csv.reader(csvfile, lineterminator = '\n', delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
                 for line in filereader:
                         user_list.append(User(line[cpt_column["Nickname"]], line[cpt_column["Status"]]))
@@ -49,10 +51,12 @@ class User():
             return user_list    
     #fin load_user_from_csv()
 
-    def search_in_file(self, user_file_path):
+
+    #debut search_in_file()
+    def search_in_file():
         columnInfile = {}
 
-        with open(user_file_path, 'r') as csvfile:
+        with open(User.user_file_path, 'r') as csvfile:
             filereader = csv.reader(csvfile, lineterminator = '\n', delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             tmp_cpt = 0       
             for line in filereader:
@@ -76,7 +80,7 @@ class User():
 
     def replace_inCSV(self):
         tempfile = NamedTemporaryFile(mode='w', delete=False)
-        cpt_column = self.search_in_file(User.user_file_path)
+        cpt_column = User.search_in_file(User.user_file_path)
 
         with open(User.user_file_path, 'r') as csvfile, tempfile:
             filereader = csv.reader(csvfile, lineterminator = '\n', delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
@@ -87,6 +91,6 @@ class User():
                 else:
                     filewriter.writerow([line[cpt_column['Nickname']], line[cpt_column['Status']]]) 
         shutil.move(tempfile.name, User.user_file_path) 
-
+    #fin search_in_file()
 
 
