@@ -64,6 +64,7 @@ def recieve():
         print(f"Connected with {str(address)}")
         # Ask the clients for Nicknames
         client.send('NICK'.encode('ascii'))
+        
         nickname = client.recv(1024).decode('ascii')
         # If the Client is an Admin promopt for the password.
         with open('bans.txt', 'r') as f:
