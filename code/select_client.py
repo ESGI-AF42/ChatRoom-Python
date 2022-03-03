@@ -1,4 +1,6 @@
+from pickle import TRUE
 import socket
+from sqlite3 import connect
 import threading
 from threading import Thread
 from datetime import datetime
@@ -48,7 +50,9 @@ def choose_color():
 def client_connect():
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect(('127.0.0.1',5002))
-    return client
+    if client:
+        print("Connected")
+    return client 
 
 
 def receive(stop_thread, client, nickname, password):
@@ -98,10 +102,17 @@ def write(stop_thread, client, client_color, nickname):
             client.send(message)
 
 def main(): # Main program 
-    # test = try_connect() # Essaye de se connecter avant de lancer toute la procèdure 
-    test = True
-    if test != False :
-        print("Connected")
+    
+    connected = True
+    try:
+        client = client_connect()
+    except:
+        IndexError
+        connected = False
+    
+    if connected:
+        stop_thread = False
+        
         log = choose_nickname()
         log_size = len(log) 
         nickname = log[0]
@@ -110,13 +121,12 @@ def main(): # Main program
         else:
             password = ""
         client_color = choose_color() # This is useless yes
-        client = client_connect()
-        stop_thread = False
         recieve_thread = threading.Thread(target=receive, args=(stop_thread, client, client_color, nickname, password))
         recieve_thread.start()
         write_thread = threading.Thread(target=write, args=(stop_thread, client, nickname))
         write_thread.start()
-        
+    else:
+        print("error connection")
 main()
 
 

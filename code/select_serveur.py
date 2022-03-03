@@ -26,8 +26,8 @@ def main():
         client, address = MySocket.accept()
         print("Connected with " + str(address))
         #Demander au client son pseudo
-        client.send('NICK'.encode())
-        nickname = client.recv(1024).decode()
+        client.send('NICK'.encode('utf-8'))
+        nickname = client.recv(1024).decode('utf-8')
         #status par défaut (dans le cas où ce serait la première connection de l'utilisateur)
         status = "member"
 
@@ -43,18 +43,18 @@ def main():
         
         # Si le client à un pseudo ayant un status ban il sera déconnecté
         if status == "ban":
-            client.send('BAN'.encode())
+            client.send('BAN'.encode('utf-8'))
             client.close()
             continue
         
         # Si le client à un pseudo ayant un status, un mot de passe lui sera demandé
         #s'il a le bon mot de passe il se connecte en tant qu'admin et peut donc avoir plus de privilèges 
         if status == 'admin':
-            client.send('PASS'.encode())
-            password = client.recv(1024).decode()
+            client.send('PASS'.encode('utf-8'))
+            password = client.recv(1024).decode('utf-8')
             if password != 'adminpass': #mot de passe pour donner un exemple, pourrait être implémenté dans le fichier user csv
                                         #par manque de temps ce n'est pas le cas actuellement
-                client.send('REFUSE'.encode())
+                client.send('REFUSE'.encode('utf-8'))
                 client.close()
                 continue
 
@@ -62,8 +62,8 @@ def main():
         clients.append(client)
 
         print("Le pseudo du client est " + nickname )
-        broadcast( nickname + " à rejoind le chat".encode())
-        client.send('Connecté sur le serveur!'.encode())
+        broadcast( nickname + " à rejoind le chat".encode('utf-8'))
+        client.send('Connecté sur le serveur!'.encode('utf-8'))
 
         # Handling Multiple Clients Simultaneously
         thread = Thread(target=update_chat, args=(client))
@@ -75,26 +75,26 @@ def update_chat(client):
         try:
             msg = message = client.recv(1024) 
 
-            if msg.decode().startswith('KICK'):
+            if msg.decode('utf-8').startswith('KICK'):
                 if nicknames[clients.index(client)] == 'admin':
-                    name_to_kick = msg.decode()[5:]
+                    name_to_kick = msg.decode('utf-8')[5:]
                     if name_to_ban in nickname:
                         kick_user(name_to_kick)
                     else:
-                        client.send('L\'utilisateur n\'est pas connecté'.encode())
+                        client.send('L\'utilisateur n\'est pas connecté'.encode('utf-8'))
                 else:
-                    client.send('Commande refusée!'.encode())
+                    client.send('Commande refusée!'.encode('utf-8'))
 
-            elif msg.decode().startswith('BAN'):
+            elif msg.decode('utf-8').startswith('BAN'):
                 if nicknames[clients.index(client)] == 'admin':
-                    name_to_ban = msg.decode()[4:]
+                    name_to_ban = msg.decode('utf-8')[4:]
                     for user in user_list:
                         if user.get_user_nickame() == name_to_ban:
                             if name_to_ban in nickname:
                                kick_user(name_to_ban)
                             user.change_status("ban")               
                 else:
-                    client.send('Command Refused!'.encode())
+                    client.send('Command Refused!'.encode('utf-8'))
             else:
                 broadcast(message)   # dès que le message est reçu, il est retourné
         
@@ -105,7 +105,7 @@ def update_chat(client):
                 client.remove(client)
                 client.close
                 nickname = nicknames[index]
-                broadcast(nickname + " à quitté le chat".encode())
+                broadcast(nickname + " à quitté le chat".encode('utf-8'))
                 nicknames.remove(nickname)
                 break
 
@@ -122,10 +122,10 @@ def kick_user(name):
         name_index = nicknames.index(name)
         client_to_kick = clients[name_index]
         clients.remove(client_to_kick)
-        client_to_kick.send('Vous avez été kick de la room !'.encode())
+        client_to_kick.send('Vous avez été kick de la room !'.encode('utf-8'))
         client_to_kick.close()
         nicknames.remove(name)
-        broadcast(name + " was kicked from the server!".encode())
+        broadcast(name + " was kicked from the server!".encode('utf-8'))
 
 
 #Calling the main method

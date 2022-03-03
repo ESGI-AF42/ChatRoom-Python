@@ -66,14 +66,7 @@ def recieve():
         client.send('NICK'.encode('ascii'))
         
         nickname = client.recv(1024).decode('ascii')
-        # If the Client is an Admin promopt for the password.
-        with open('bans.txt', 'r') as f:
-            bans = f.readlines()
-        
-        if nickname+'\n' in bans:
-            client.send('BAN'.encode('ascii'))
-            client.close()
-            continue
+        # If the Client is an Admin promopt for the password.SS
 
         if nickname == 'admin':
             client.send('PASS'.encode('ascii'))
