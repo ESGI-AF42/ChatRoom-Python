@@ -21,7 +21,10 @@ def choose_nickname():
     nickname = input("Choisissez votre Pseudo: ")
     if nickname == 'admin':
         password = input("Enter Password for Admin:")
-    log = [nickname, password]
+        log = [nickname, password]
+    else:
+        log = [nickname]
+    
     return log
 
 def choose_color():
@@ -31,7 +34,7 @@ def choose_color():
     print("Choisissez la couleur de votre chat :")
     print("Avaiable colors : Bleu, Vert, Rose, Rouge, Jaune")
     client_color = input("Votre choix: ")
-    while test == True: # Je sais pas pourquoi j'ai fais comme ça mais ça marche 
+    while test: # Je sais pas pourquoi j'ai fais comme ça mais ça marche 
         for i in range(len(colors)) :
             if under_color[i] == client_color :
                 client_color = colors[i]
@@ -74,7 +77,7 @@ def receive(stop_thread, client, nickname, password):
             client.close()
             break
         
-def write(stop_thread, client, client_color, nickname, password): 
+def write(stop_thread, client, client_color, nickname): 
     while True:
         if stop_thread:
             break
@@ -100,14 +103,18 @@ def main(): # Main program
     if test != False :
         print("Connected")
         log = choose_nickname()
+        log_size = len(log) 
         nickname = log[0]
-        password = log[1]
+        if log_size > 1:
+            password = log[1]
+        else:
+            password = ""
         client_color = choose_color() # This is useless yes
         client = client_connect()
         stop_thread = False
         recieve_thread = threading.Thread(target=receive, args=(stop_thread, client, client_color, nickname, password))
         recieve_thread.start()
-        write_thread = threading.Thread(target=write, args=(stop_thread, client, nickname, password))
+        write_thread = threading.Thread(target=write, args=(stop_thread, client, nickname))
         write_thread.start()
         
 main()
