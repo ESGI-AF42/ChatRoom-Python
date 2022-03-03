@@ -82,7 +82,7 @@ def main(): # Main program
         stop_thread = False
         recieve_thread = threading.Thread(target=receive, args=(stop_thread, client, client_color))
         recieve_thread.start()
-        write_thread = threading.Thread(target=write, args=((stop_thread, client))
+        write_thread = threading.Thread(target=write, args=(stop_thread, client))
         write_thread.start()
         
 main()
