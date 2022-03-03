@@ -1,6 +1,6 @@
 import socket
 from threading import Thread
-import user
+from user import User
 
 
 # Adresse IP du serveur
@@ -15,21 +15,88 @@ MySocket.bind((HOST, PORT))# associe le socket à l'adresse qu'on utilise
 MySocket.listen() #le socket est en attente de connection, il y aura maximum 42 connections 
 print(f"[*] Listening as {HOST}:{PORT}")
 
-#initialisation des listes et dict permettant l'identification des différents clients dans le chat bot
+#initialisation des listes permettant l'identification des différents clients dans le chat bot
 clients = list()#list de clients connectés
-nicknames = dict()# Dictionnaire de donnée contenant les différent pseudo associé à leur client
+nicknames = list()# list des pseudos connectés
 
-# 1.Broadcasting Method
-def broadcast(message):
-    for client in clients:
-        client.send(message)
+user_list=User.load_user_from_csv("ouioui")# récupère la liste de tous les utilisateurs qui se sont une fois connecté
 
-# 2.Recieving Messages from client then broadcasting
-def room(client):
+def main():
+    while True:
+        client, address = MySocket.accept()
+        print("Connected with " + str(address))
+        #Demander au client son pseudo
+        client.send('NICK'.encode('ascii'))
+        nickname = client.recv(1024).decode('ascii')
+        #status par défaut (dans le cas où ce serait la première connection de l'utilisateur)
+        status = "member"
+
+        # vérifie si le client s'est déjà connecté ainsi que son status
+        # si ce n'est pas le cas il le cré 
+        for user in user_list:
+            if user.get_user_nickname() == nickname:
+                status = user.get_user_status()
+            
+            else:
+                NewUser=User(nickname,status)
+                NewUser.save_user()
+        
+        # Si le client à un pseudo ayant un status ban il sera déconnecté
+        if status == "ban":
+            client.send('BAN'.encode('ascii'))
+            client.close()
+            continue
+        
+        # Si le client à un pseudo ayant un status, un mot de passe lui sera demandé
+        #s'il a le bon mot de passe il se connecte en tant qu'admin et peut donc avoir plus de privilèges 
+        if status == 'admin':
+            client.send('PASS'.encode('ascii'))
+            password = client.recv(1024).decode('ascii')
+            if password != 'adminpass': #mot de passe pour donner un exemple, pourrait être implémenté dans le fichier user csv
+                                        #par manque de temps ce n'est pas le cas actuellement
+                client.send('REFUSE'.encode('ascii'))
+                client.close()
+                continue
+
+        nicknames.append(nickname)
+        clients.append(client)
+
+        print("Le pseudo du client est " + nickname )
+        broadcast( nickname + " à rejoind le chat".encode('ascii'))
+        client.send('Connecté sur le serveur!'.encode('ascii'))
+
+        # Handling Multiple Clients Simultaneously
+        thread = Thread(target=update_chat, args=(client))
+        thread.start()
+
+
+def update_chat(client):
     while True:
         try:
-            msg = message = client.recv(1024)  
-            broadcast(message)   # dès que le message est reçu, il est retourné
+            msg = message = client.recv(1024) 
+
+            if msg.decode('ascii').startswith('KICK'):
+                if nicknames[clients.index(client)] == 'admin':
+                    name_to_kick = msg.decode('ascii')[5:]
+                    if name_to_ban in nickname:
+                        kick_user(name_to_kick)
+                    else:
+                        client.send('L\'utilisateur n\'est pas connecté'.encode('ascii'))
+                else:
+                    client.send('Commande refusée!'.encode('ascii'))
+
+            elif msg.decode('ascii').startswith('BAN'):
+                if nicknames[clients.index(client)] == 'admin':
+                    name_to_ban = msg.decode('ascii')[4:]
+                    for user in user_list:
+                        if user.get_user_nickame() == name_to_ban:
+                            if name_to_ban in nickname:
+                               kick_user(name_to_ban)
+                            user.change_status("ban")               
+                else:
+                    client.send('Command Refused!'.encode('ascii'))
+            else:
+                broadcast(message)   # dès que le message est reçu, il est retourné
         
         except:
             if client in clients:
@@ -38,45 +105,29 @@ def room(client):
                 client.remove(client)
                 client.close
                 nickname = nicknames[index]
-                broadcast(f'{nickname} left the Chat!'.encode('ascii'))
+                broadcast(nickname + " à quitté le chat".encode('ascii'))
                 nicknames.remove(nickname)
                 break
-# Main Recieve method
-def recieve():
-    while True:
-        client, address = MySocket.accept()
-        print(f"Connected with {str(address)}")
-        # Ask the clients for Nicknames
-        client.send('NICK'.encode('ascii'))
-        nickname = client.recv(1024).decode('ascii')
-        # If the Client is an Admin promopt for the password.
-        with open('bans.txt', 'r') as f:
-            bans = f.readlines()
-        
-        if nickname+'\n' in bans:
-            client.send('BAN'.encode('ascii'))
-            client.close()
-            continue
 
-        if nickname == 'admin':
-            client.send('PASS'.encode('ascii'))
-            password = client.recv(1024).decode('ascii')
-            # I know it is lame, but my focus is mainly for Chat system and not a Login System
-            if password != 'adminpass':
-                client.send('REFUSE'.encode('ascii'))
-                client.close()
-                continue
 
-        nicknames.append(nickname)
-        clients.append(client)
-
-        print(f'Nickname of the client is {nickname}')
-        broadcast(f'{nickname} joined the Chat'.encode('ascii'))
-        client.send('Connected to the Server!'.encode('ascii'))
-
-        # Handling Multiple Clients Simultaneously
-        thread = Thread(target=room, args=(client,))
-        thread.start()
+def broadcast(message):
+    for client in clients:
+        client.send(message)
 
 
 
+
+def kick_user(name):
+    if name in nicknames:
+        name_index = nicknames.index(name)
+        client_to_kick = clients[name_index]
+        clients.remove(client_to_kick)
+        client_to_kick.send('Vous avez été kick de la room !'.encode('ascii'))
+        client_to_kick.close()
+        nicknames.remove(name)
+        broadcast(name + " was kicked from the server!".encode('ascii'))
+
+
+#Calling the main method
+print('Server is Listening ...')
+main()
