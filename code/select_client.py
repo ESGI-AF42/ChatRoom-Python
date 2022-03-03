@@ -45,9 +45,8 @@ def client_connect():
     return client
 
 
-def receive():
+def receive(stop_thread, client):
     while True:
-        global stop_thread
         if stop_thread:
             break    
         try:
@@ -58,7 +57,7 @@ def receive():
             client.close()
             break
         
-def write():
+def write(stop_thread, client, client_color):
     i = 0 
     while True:
         if stop_thread:
@@ -78,15 +77,12 @@ def main(): # Main program
     if test != False :
         print("Connected")
         choose_nickname()
-        global client_color 
         client_color = choose_color() # This is useless yes
-        global client 
         client = client_connect()
-        global stop_thread 
         stop_thread = False
-        recieve_thread = threading.Thread(target=receive)
+        recieve_thread = threading.Thread(target=receive, args=(stop_thread, client, client_color))
         recieve_thread.start()
-        write_thread = threading.Thread(target=write)
+        write_thread = threading.Thread(target=write, args=((stop_thread, client))
         write_thread.start()
         
 main()
