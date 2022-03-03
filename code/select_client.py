@@ -10,7 +10,7 @@ from colorama import Fore, init, Back
 def try_connect():
     a_socket = socket.socket()
     try :
-        a_socket.connect(("127.0.0.1", 5555)) # Tente de se connecter à l'adresse IP et au port suivant
+        a_socket.connect(("127.0.0.1", 5002)) # Tente de se connecter à l'adresse IP et au port suivant
         a_socket.shutdown(socket.SHUT_RDWR) # Essaye de se deconnecter du client ? verif que ça marche côté serveur 
         a_socket.close()
     except : 
@@ -41,7 +41,7 @@ def choose_color():
 
 def client_connect():
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(('127.0.0.1',5555))
+    client.connect(('127.0.0.1',5002))
     return client
 
 
@@ -50,7 +50,7 @@ def receive(stop_thread, client):
         if stop_thread:
             break    
         try:
-            message = client.recv(1024).decode('ascii')
+            message = client.recv(1024).decode()
             print(message)
         except:
             print('Error Occured while Connecting')
@@ -68,7 +68,7 @@ def write(stop_thread, client, client_color):
         else : 
             date_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S') 
             message = f'{client_color}[{date_now}]  {nickname}: {input(":")}'
-            client.send(message.encode('ascii'))
+            client.send(message.encode())
         i += 1 
 
 def main(): # Main program 
