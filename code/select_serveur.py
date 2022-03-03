@@ -1,6 +1,6 @@
 import socket
 from threading import Thread
-from User import User
+import user
 
 
 # Adresse IP du serveur
