@@ -18,10 +18,11 @@ def try_connect():
         return False 
 
 def choose_nickname():
-    global nickname
     nickname = input("Choisissez votre Pseudo: ")
     if nickname == 'admin':
         password = input("Enter Password for Admin:")
+    log = [nickname, password]
+    return log
 
 def choose_color():
     test = True
@@ -47,18 +48,18 @@ def client_connect():
     return client
 
 
-def receive(stop_thread, client):
+def receive(stop_thread, client, nickname, password):
     while True:
         if stop_thread:
             break    
         try:
             message = client.recv(1024).decode()
             if message == 'NICK':
-                client.send(nickname.encode('ascii'))
-                next_message = client.recv(1024).decode('ascii')
+                client.send(nickname)
+                next_message = client.recv(1024)
                 if next_message == 'PASS':
-                    client.send(password.encode('ascii'))
-                    if client.recv(1024).decode('ascii') == 'REFUSE':
+                    client.send(password)
+                    if client.recv(1024) == 'REFUSE':
                         print("Connection is Refused !! Wrong Password")
                         stop_thread = True
                 # Clients those are banned can't reconnect
@@ -73,7 +74,7 @@ def receive(stop_thread, client):
             client.close()
             break
         
-def write(stop_thread, client, client_color): 
+def write(stop_thread, client, client_color, nickname, password): 
     while True:
         if stop_thread:
             break
@@ -84,27 +85,29 @@ def write(stop_thread, client, client_color):
             if nickname == 'admin':
                 if message[len(nickname)+2:].startswith('/kick'):
                     # 2 for : and whitespace and 6 for /KICK_
-                    client.send(f'KICK {message[len(nickname)+2+6:]}'.encode('ascii'))
+                    client.send(f'KICK {message[len(nickname)+2+6:]}')
                 elif message[len(nickname)+2:].startswith('/ban'):
                     # 2 for : and whitespace and 5 for /BAN
-                    client.send(f'BAN {message[len(nickname)+2+5:]}'.encode('ascii'))
+                    client.send(f'BAN {message[len(nickname)+2+5:]}')
             else:
                 print("Commands can be executed by Admins only !!")
         else:
-            client.send(message.encode('ascii'))
+            client.send(message)
 
 def main(): # Main program 
     # test = try_connect() # Essaye de se connecter avant de lancer toute la procèdure 
     test = True
     if test != False :
         print("Connected")
-        choose_nickname()
+        log = choose_nickname()
+        nickname = log[0]
+        password = log[1]
         client_color = choose_color() # This is useless yes
         client = client_connect()
         stop_thread = False
-        recieve_thread = threading.Thread(target=receive, args=(stop_thread, client, client_color))
+        recieve_thread = threading.Thread(target=receive, args=(stop_thread, client, client_color, nickname, password))
         recieve_thread.start()
-        write_thread = threading.Thread(target=write, args=(stop_thread, client))
+        write_thread = threading.Thread(target=write, args=(stop_thread, client, nickname, password))
         write_thread.start()
         
 main()
