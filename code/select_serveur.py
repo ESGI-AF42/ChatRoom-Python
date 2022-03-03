@@ -19,7 +19,7 @@ print(f"[*] Listening as {HOST}:{PORT}")
 clients = list()#list de clients connectés
 nicknames = list()# list des pseudos connectés
 
-user_list=User.load_user_from_csv("ouioui")# récupère la liste de tous les utilisateurs qui se sont une fois connecté
+user_list=User.load_user_from_csv()# récupère la liste de tous les utilisateurs qui se sont une fois connecté
 
 def main():
     while True:

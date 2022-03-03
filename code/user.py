@@ -26,7 +26,7 @@ class User():
         
     #debut save_user()
     def save_user(self):
-        user_list = User.load_user_from_csv(User.user_file_path)
+        user_list = User.load_user_from_csv()
         inFile = False
         for user in user_list:
             if user.get_user_nickname() == self.get_user_nickname():
@@ -42,7 +42,7 @@ class User():
     #debut load_user_from_csv()
     def load_user_from_csv():
             user_list = []
-            cpt_column = User.search_in_file(User.user_file_path)
+            cpt_column = User.search_in_file()
             with open(User.user_file_path, 'r') as csvfile:
                 filereader = csv.reader(csvfile, lineterminator = '\n', delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
                 for line in filereader:
@@ -80,7 +80,7 @@ class User():
 
     def replace_inCSV(self):
         tempfile = NamedTemporaryFile(mode='w', delete=False)
-        cpt_column = User.search_in_file(User.user_file_path)
+        cpt_column = User.search_in_file()
 
         with open(User.user_file_path, 'r') as csvfile, tempfile:
             filereader = csv.reader(csvfile, lineterminator = '\n', delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
