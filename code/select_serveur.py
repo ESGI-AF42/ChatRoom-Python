@@ -62,18 +62,20 @@ def main():
         clients.append(client)
 
         print("Le pseudo du client est " + nickname )
-        broadcast( nickname + " à rejoind le chat".encode('utf-8'))
+        phrase = nickname + " à rejoind le chat"
+        broadcast( phrase.encode('utf-8'))
         client.send('Connecté sur le serveur!'.encode('utf-8'))
 
         # Handling Multiple Clients Simultaneously
-        thread = Thread(target=update_chat, args=(client))
+        thread = Thread(target=update_chat, args=(client,))
         thread.start()
 
 
 def update_chat(client):
     while True:
         try:
-            msg = message = client.recv(1024) 
+            msg = message = client.recv(1024)
+            
 
             if msg.decode('utf-8').startswith('KICK'):
                 if nicknames[clients.index(client)] == 'admin':
@@ -81,10 +83,9 @@ def update_chat(client):
                     if name_to_ban in nickname:
                         kick_user(name_to_kick)
                     else:
-                        client.send('L\'utilisateur n\'est pas connecté'.encode('utf-8'))
+                        client.send('L utilisateur n est pas connecté'.encode('utf-8'))
                 else:
                     client.send('Commande refusée!'.encode('utf-8'))
-
             elif msg.decode('utf-8').startswith('BAN'):
                 if nicknames[clients.index(client)] == 'admin':
                     name_to_ban = msg.decode('utf-8')[4:]
@@ -105,7 +106,8 @@ def update_chat(client):
                 client.remove(client)
                 client.close
                 nickname = nicknames[index]
-                broadcast(nickname + " à quitté le chat".encode('utf-8'))
+                leave_server_phrase = nickname + " à quitté le chat"
+                broadcast(leave_server_phrase.encode('utf-8'))
                 nicknames.remove(nickname)
                 break
 
@@ -125,7 +127,8 @@ def kick_user(name):
         client_to_kick.send('Vous avez été kick de la room !'.encode('utf-8'))
         client_to_kick.close()
         nicknames.remove(name)
-        broadcast(name + " was kicked from the server!".encode('utf-8'))
+        kick_server_phrase = name + " a été kick du serveur!"
+        broadcast(kick_server_phrase.encode('utf-8'))
 
 
 #Calling the main method
