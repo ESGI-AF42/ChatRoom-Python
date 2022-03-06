@@ -4,20 +4,20 @@ from sqlite3 import connect
 import threading
 from threading import Thread
 from datetime import datetime
-from colorama import Fore, init, Back
+# from colorama import Fore, init, Back
 import random
 
 
- # client_color = choose_color() # This is useless yes
+ # client_color = choose_color() # c'est inutile oui
 
-# set the available colors
-colors = [Fore.BLUE, Fore.CYAN, Fore.GREEN, Fore.LIGHTBLACK_EX, 
-    Fore.LIGHTBLUE_EX, Fore.LIGHTCYAN_EX, Fore.LIGHTGREEN_EX, 
-    Fore.LIGHTMAGENTA_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX, 
-    Fore.LIGHTYELLOW_EX, Fore.MAGENTA, Fore.RED, Fore.WHITE, Fore.YELLOW
-]
+# cgoisir une couleur valide
+# colors = [Fore.BLUE, Fore.CYAN, Fore.GREEN, Fore.LIGHTBLACK_EX, 
+#     Fore.LIGHTBLUE_EX, Fore.LIGHTCYAN_EX, Fore.LIGHTGREEN_EX, 
+#     Fore.LIGHTMAGENTA_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX, 
+#     Fore.LIGHTYELLOW_EX, Fore.MAGENTA, Fore.RED, Fore.WHITE, Fore.YELLOW
+# ]
 
-# choose a random color for the client It's not working UwU, Fait le marche si ça t'amuse bg 
+# censé chosir une couleur random mais ne fonctioone pas UwU
 # client_color = random.choice(colors)
 
 nickname = input("Choisissez votre Pseudo: ")
@@ -39,23 +39,24 @@ def try_connect():
         print("Le serveur ne répond pas")
         return False 
 
-def choose_color():
-    test = True
-    colors = [Fore.BLUE, Fore.GREEN, Fore.MAGENTA, Fore.RED, Fore.YELLOW]
-    under_color = ["Bleu", "Vert", "Rose", "Rouge", "Jaune"]
-    print("Choisissez la couleur de votre chat :")
-    print("Avaiable colors : Bleu, Vert, Rose, Rouge, Jaune")
-    client_color = input("Votre choix: ")
-    while test: # Je sais pas pourquoi j'ai fais comme ça mais ça marche 
-        for i in range(len(colors)) :
-            if under_color[i] == client_color :
-                client_color = colors[i]
-                test = False
-                exit
-        if test != False :
-            print("La couleur n'existe pas")
-            client_color = str(input("Votre choix: "))
-    return client_color
+# fonction pour choisir une couleur affichée dans le chat mais ne fonctionne pas
+# def choose_color():
+#     test = True
+#     colors = [Fore.BLUE, Fore.GREEN, Fore.MAGENTA, Fore.RED, Fore.YELLOW]
+#     under_color = ["Bleu", "Vert", "Rose", "Rouge", "Jaune"]
+#     print("Choisissez la couleur de votre chat :")
+#     print("Avaiable colors : Bleu, Vert, Rose, Rouge, Jaune")
+#     client_color = input("Votre choix: ")
+#     while test: # Je sais pas pourquoi j'ai fais comme ça mais ça marche 
+#         for i in range(len(colors)) :
+#             if under_color[i] == client_color :
+#                 client_color = colors[i]
+#                 test = False
+#                 exit
+#         if test != False :
+#             print("La couleur n'existe pas")
+#             client_color = str(input("Votre choix: "))
+#     return client_color
 
 def client_connect():
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -77,13 +78,15 @@ def receive():
                     if client.recv(1024).decode('utf-8') == 'REFUSE':
                         print("Connection is Refused !! Wrong Password")
                         stop_thread = True
-                # Clients those are banned can't reconnect
+                # les clients qui sont bannis ne peuvent pas se reconencter
                 elif next_message == 'BAN':
                     print('Connection Refused due to Ban')
                     client.close()
                     stop_thread = True
             else:
-                print(message)
+                split_message= message.split(': ')
+                if split_message[0]!=nickname:
+                    print(message)
         except:
             print('Error Occured while Connecting')
             client.close()
