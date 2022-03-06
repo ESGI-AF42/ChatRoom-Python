@@ -103,6 +103,13 @@ def update_chat(client):
                             break               
                 else:
                     client.send('Command Refused!'.encode('utf-8'))
+
+            #si LIST est entré alors ca retourne la liste des utilisateurs connecté
+            elif text[1].startswith('LIST'):
+                connected_user_list = ''
+                for connected_user in nicknames:
+                    connected_user_list= connected_user_list + "\n"+ connected_user
+                client.send(connected_user_list.encode('utf-8'))
             else:
                 
                 broadcast(message)   # dès que le message est reçu, il est retourné
