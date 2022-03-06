@@ -63,7 +63,7 @@ def main():
         clients.append(client)
 
         print("Le pseudo du client est " + nickname )
-        phrase = nickname + " à rejoind le chat"
+        phrase = nickname + " a rejoint le chat"
         broadcast( phrase.encode('utf-8'))
         client.send('Connecté sur le serveur! \n(écrivez votre premier message) '.encode('utf-8'))
 
@@ -79,6 +79,7 @@ def update_chat(client):
             msg =''
             msg = message = client.recv(1024)
             text = msg.decode('utf-8').split(': ')
+            #si le message de l'utilisateur commence par KICK et que son pseudo est admin
             if text[1].startswith('KICK'):
                 if nicknames[clients.index(client)] == 'admin':
                     name_to_kick = text[1][5:]
@@ -88,14 +89,17 @@ def update_chat(client):
                         client.send('L utilisateur n est pas connecté'.encode('utf-8'))
                 else:
                     client.send('Commande refusée!'.encode('utf-8'))
+
+            #si le message de l'utilisateur commence par BAN et que son pseudo est admin
             elif text[1].startswith('BAN'):
                 if nicknames[clients.index(client)] == 'admin':
                     name_to_ban = text[1][4:]
                     for user in user_list:
                         if user.get_user_nickname() == name_to_ban:
+                            #si l'utilisateur à bannir est connecté
                             if name_to_ban in nicknames:
-                                kick_user(name_to_ban)
-                            user.change_status("ban")
+                                kick_user(name_to_ban)#il le kick 
+                            user.change_status("ban")#avant de le bannir
                             break               
                 else:
                     client.send('Command Refused!'.encode('utf-8'))
@@ -115,23 +119,23 @@ def update_chat(client):
                 nicknames.remove(nickname)
                 break
 
-
+#renvoi les messages recues à tous les clients
 def broadcast(message):
     for client in clients:
         client.send(message)
 
-
+#procédure pour kick un utilisateur
 def kick_user(name):
     name_index = nicknames.index(name)
     client_to_kick = clients[name_index]
-    clients.remove(client_to_kick)
+    clients.remove(client_to_kick)#retire le client à kick de la liste actuel des clients
     client_to_kick.send('Vous avez été kick de la room !'.encode('utf-8'))
-    client_to_kick.close()
-    nicknames.remove(name)
+    client_to_kick.close()#ferme la connection avec le client
+    nicknames.remove(name)#retire le surnom du client à kick de la liste actuel des surnoms
     kick_server_phrase = name + " a été kick du serveur!"
-    broadcast(kick_server_phrase.encode('utf-8'))
+    broadcast(kick_server_phrase.encode('utf-8'))#préviens tous les utilisateurs que le client a été kick
 
 
-#Calling the main method
+#appelle de la méthode main
 print('Server is Listening ...')
 main()
